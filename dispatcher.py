@@ -1,5 +1,6 @@
 from operator import add, sub, mul, truediv
 
+from .enums import VMResult
 from . import value
 
 
@@ -37,4 +38,8 @@ class Instructions(Arithmetics):
         vm.stack.push(constant)
 
     def OP_NEGATE(self, vm):
+        if not isinstance(vm.stack.peek(), float):
+            vm.runtime_error("Operand must be a number.")
+            return VMResult.RUNTIME_ERROR
+
         vm.stack.stack[-1] *= -1

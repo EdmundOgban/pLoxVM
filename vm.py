@@ -1,18 +1,16 @@
-from enum import Enum, auto
 from operator import add, sub, mul, truediv
 
 from .opcodes import *
+from .enums import VMResult
+from .error_machinery import ErrorMachinery
 from . import value, dispatcher, compiler, chunk, debug
+
+
+errmac = ErrorMachinery()
 
 
 class LoxStackOverflow(Exception):
     pass
-
-
-class Result(Enum):
-    INTERPRET_OK = auto()
-    INTERPRET_COMPILE_ERROR = auto()
-    INTERPRET_RUNTIME_ERROR = auto()
 
 
 class Stack:
@@ -31,6 +29,9 @@ class Stack:
     def pop(self):
         self.stack_top -= 1
         return self.stack.pop()
+
+    def peek(self, distance=0):
+        return self.stack[-1 - distance]
 
     def reset(self):
         self.stack_top = 0
@@ -79,7 +80,7 @@ class VM:
     def interpret(self, source):
         self.chunk = chunk.Chunk()
         if not self.compiler.compile(source, self.chunk):
-            return Result.INTERPRET_COMPILE_ERROR
+            return VMResult.COMPILE_ERROR
 
         return self.run()
 
@@ -91,3 +92,8 @@ class VM:
 
     def free(self):
         self.init()
+
+    def runtime_error(self, message):
+        line = self.chunk.lines[self.ip - 1]
+        message = f"{message}\n[line {line}] in script"
+        errmac.runtime_error(message)

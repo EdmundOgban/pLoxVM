@@ -33,7 +33,8 @@ class ErrorMachinery:
         stderr(f": {message}")
         self.errored = True
 
-    def runtime_error(self):
+    def runtime_error(self, message):
+        stderr(message)
         self.runtime_errored = True
 
     def reset(self):

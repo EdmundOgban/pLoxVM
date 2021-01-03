@@ -1,4 +1,5 @@
 import sys
+from .enums import VMResult
 from .error_machinery import ErrorMachinery
 from . import vm
 
@@ -17,9 +18,9 @@ class Plox:
     def run_oneshot(self, source):
         out = self.run(source)
         self.vm.free()
-        if out is vm.Result.INTERPRET_COMPILE_ERROR:
+        if out is VMResult.COMPILE_ERROR:
             sys.exit(65)
-        elif out is vm.Result.INTERPRET_RUNTIME_ERROR:
+        elif out is VMResult.RUNTIME_ERROR:
             sys.exit(70)
 
         return out
