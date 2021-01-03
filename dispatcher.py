@@ -4,24 +4,28 @@ from .enums import VMResult
 from . import value
 
 
-def binary_op(stack, opfunc):
-    b = stack.pop()
-    a = stack.pop()
-    stack.push(opfunc(a, b))
+def binary_op(vm, opfunc):
+    if not isinstance(vm.stack.peek(), float) or not isinstance(vm.stack.peek(1), float):
+        vm.runtime_error("Operands must be numbers.")
+        return VMResult.RUNTIME_ERROR
+
+    b = vm.stack.pop()
+    a = vm.stack.pop()
+    vm.stack.push(opfunc(a, b))
 
 
 class Arithmetics:
     def OP_ADD(self, vm):
-        return binary_op(vm.stack, add)
+        return binary_op(vm, add)
 
     def OP_SUBTRACT(self, vm):
-        return binary_op(vm.stack, sub)
+        return binary_op(vm, sub)
 
     def OP_MULTIPLY(self, vm):
-        return binary_op(vm.stack, mul)
+        return binary_op(vm, mul)
         
     def OP_DIVIDE(self, vm):
-        return binary_op(vm.stack, truediv)
+        return binary_op(vm, truediv)
 
 
 class Instructions(Arithmetics):

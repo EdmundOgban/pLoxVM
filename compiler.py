@@ -50,7 +50,7 @@ class Compiler(Emitter):
             if self.current.type != TokenType.ERROR:
                 break
 
-            errmac.error_at_current(self.current.lexeme)
+            self._error_at_current(self.current.lexeme)
 
     def _grouping(self):
         self._expression()
