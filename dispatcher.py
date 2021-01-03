@@ -28,7 +28,18 @@ class Arithmetics:
         return binary_op(vm, truediv)
 
 
-class Instructions(Arithmetics):
+class Singletons:
+    def OP_NIL(self, vm):
+        vm.stack.push(None)
+
+    def OP_FALSE(self, vm):
+        vm.stack.push(False)
+
+    def OP_TRUE(self, vm):
+        vm.stack.push(True)
+
+
+class Instructions(Arithmetics, Singletons):
     def dispatch(self, instr_name, vm):
         return getattr(self, instr_name)(vm)
 

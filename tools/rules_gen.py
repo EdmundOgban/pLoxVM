@@ -22,6 +22,9 @@ PRECEDENCES = {
     TokenType.SLASH: [None, "binary", "FACTOR"],
     TokenType.STAR: [None, "binary", "FACTOR"],
     TokenType.NUMBER: ["number", None, None],
+    TokenType.NIL: ["literal", None, None],
+    TokenType.TRUE: ["literal", None, None],
+    TokenType.FALSE: ["literal", None, None],
 }
 
 
@@ -52,7 +55,7 @@ def write_precedences(f, tokens=TokenType):
             if infix:
                 functions.add(infix)
 
-            s = f"ParseRule({tokprec[0]}, {tokprec[1]}, {'Precedence.' if prec else ''}{prec})"
+            s = f"ParseRule({prefix}, {infix}, {'Precedence.' if prec else ''}{prec})"
         else:
             s = "ParseRule(None, None, Precedence.NONE)"
 

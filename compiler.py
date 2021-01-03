@@ -78,6 +78,16 @@ class Compiler(Emitter):
         elif operator_type is TokenType.SLASH:
             self.emit_byte(OP_DIVIDE)
 
+    def _literal(self):
+        operator_type = self.previous.type
+
+        if operator_type is TokenType.NIL:
+            self.emit_byte(OP_NIL)
+        elif operator_type is TokenType.FALSE:
+            self.emit_byte(OP_FALSE)
+        elif operator_type is TokenType.TRUE:
+            self.emit_byte(OP_TRUE)
+
     def _unary(self):
         operator_type = self.previous.type
 

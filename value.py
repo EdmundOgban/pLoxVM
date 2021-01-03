@@ -2,7 +2,17 @@ from array import array
 
 
 def print_value(value, end=""):
-    print(f"{value:g}", end=end)
+    out = None
+
+    if value is None:
+        out = "nil"
+    elif value is True or value is False:
+        out = str(value).lower()
+    elif isinstance(value, float):
+        out = f"{value:g}"
+
+    if out:
+        print(out, end=end)
 
 
 class ValueArray:

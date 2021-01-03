@@ -4,6 +4,9 @@ OPCODES_SIMPLE = [
     "OP_MULTIPLY",
     "OP_DIVIDE",
     "OP_NEGATE",
+    "OP_NIL",
+    "OP_TRUE",
+    "OP_FALSE",
     "OP_RETURN",
 ]
 

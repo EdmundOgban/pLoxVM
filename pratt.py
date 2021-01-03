@@ -7,20 +7,24 @@ from .compiler import Precedence
 ParseRule = namedtuple("ParseRule", ["prefix", "infix", "precedence"])
 
 
-def grouping(inst):
-   return inst._grouping()
-
-
 def number(inst):
    return inst._number()
+
+
+def unary(inst):
+   return inst._unary()
+
+
+def grouping(inst):
+   return inst._grouping()
 
 
 def binary(inst):
    return inst._binary()
 
 
-def unary(inst):
-   return inst._unary()
+def literal(inst):
+   return inst._literal()
 
 
 RULES = {
@@ -53,17 +57,17 @@ RULES = {
     TokenType.AND: ParseRule(None, None, Precedence.NONE),
     TokenType.CLASS: ParseRule(None, None, Precedence.NONE),
     TokenType.ELSE: ParseRule(None, None, Precedence.NONE),
-    TokenType.FALSE: ParseRule(None, None, Precedence.NONE),
+    TokenType.FALSE: ParseRule(literal, None, None),
     TokenType.FUN: ParseRule(None, None, Precedence.NONE),
     TokenType.FOR: ParseRule(None, None, Precedence.NONE),
     TokenType.IF: ParseRule(None, None, Precedence.NONE),
-    TokenType.NIL: ParseRule(None, None, Precedence.NONE),
+    TokenType.NIL: ParseRule(literal, None, None),
     TokenType.OR: ParseRule(None, None, Precedence.NONE),
     TokenType.PRINT: ParseRule(None, None, Precedence.NONE),
     TokenType.RETURN: ParseRule(None, None, Precedence.NONE),
     TokenType.SUPER: ParseRule(None, None, Precedence.NONE),
     TokenType.THIS: ParseRule(None, None, Precedence.NONE),
-    TokenType.TRUE: ParseRule(None, None, Precedence.NONE),
+    TokenType.TRUE: ParseRule(literal, None, None),
     TokenType.VAR: ParseRule(None, None, Precedence.NONE),
     TokenType.WHILE: ParseRule(None, None, Precedence.NONE),
     TokenType.LOOP: ParseRule(None, None, Precedence.NONE),
