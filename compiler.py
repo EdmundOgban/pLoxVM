@@ -47,7 +47,10 @@ class Compiler(Emitter):
         self.previous = self.current
         while True:
             self.current = self.scanner.scan_token()
-            if self.current.type != TokenType.ERROR:
+            if self.current is None:
+                continue
+
+            if self.current.type is not TokenType.ERROR:
                 break
 
             self._error_at_current(self.current.lexeme)
