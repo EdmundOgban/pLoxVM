@@ -7,6 +7,19 @@ from . import scanner, compiler, pratt, debug
 
 errmac = ErrorMachinery()
 
+BINARY_OPS = {
+    TokenType.PLUS: (OP_ADD,),
+    TokenType.MINUS: (OP_SUBTRACT,),
+    TokenType.STAR: (OP_MULTIPLY,),
+    TokenType.SLASH: (OP_DIVIDE,),
+    TokenType.BANG_EQUAL: (OP_EQUAL, OP_NOT),
+    TokenType.EQUAL_EQUAL: (OP_EQUAL,),
+    TokenType.GREATER: (OP_GREATER,),
+    TokenType.GREATER_EQUAL: (OP_LESS, OP_NOT),
+    TokenType.LESS: (OP_LESS,),
+    TokenType.LESS_EQUAL: (OP_GREATER, OP_NOT),
+}
+
 
 class Emitter:
     def __init__(self):
@@ -22,9 +35,9 @@ class Emitter:
     def emit_byte(self, byte):
         self.chunk.write(byte, self.previous.line)
 
-    def emit_bytes(self, b1, b2):
-        self.emit_byte(b1)
-        self.emit_byte(b2)
+    def emit_bytes(self, *args):
+        for byte in args:
+            self.emit_byte(byte)
 
 
 class Compiler(Emitter):
@@ -70,16 +83,9 @@ class Compiler(Emitter):
     def _binary(self):
         operator_type = self.previous.type
         rule = pratt.RULES.get(operator_type)
+        opcodes = BINARY_OPS.get(operator_type)
         self._parse_precedence(rule.precedence + 1)
-
-        if operator_type is TokenType.PLUS:
-            self.emit_byte(OP_ADD)
-        elif operator_type is TokenType.MINUS:
-            self.emit_byte(OP_SUBTRACT)
-        elif operator_type is TokenType.STAR:
-            self.emit_byte(OP_MULTIPLY)
-        elif operator_type is TokenType.SLASH:
-            self.emit_byte(OP_DIVIDE)
+        self.emit_bytes(*opcodes)
 
     def _literal(self):
         operator_type = self.previous.type

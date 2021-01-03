@@ -1,4 +1,4 @@
-from operator import add, sub, mul, truediv
+from operator import add, sub, mul, truediv, gt, lt
 
 from .enums import VMResult
 from . import value
@@ -18,6 +18,19 @@ def _is_falsey(value):
     return value is None or not bool(value)
 
 
+def _equality(a, b):
+    if type(a) is not type(b):
+        return False
+
+    if a is True or a is False:
+        return a is b
+
+    if a is None:
+        return True
+
+    return a == b
+
+
 class Arithmetics:
     def OP_ADD(self, vm):
         return binary_op(vm, add)
@@ -32,6 +45,19 @@ class Arithmetics:
         return binary_op(vm, truediv)
 
 
+class Comparisons:
+    def OP_EQUAL(self, vm):
+        b = vm.stack.pop()
+        a = vm.stack.pop()
+        vm.stack.push(_equality(a, b))
+
+    def OP_GREATER(self, vm):
+        return binary_op(vm, gt)
+
+    def OP_LESS(self, vm):
+        return binary_op(vm, lt)
+
+
 class Singletons:
     def OP_NIL(self, vm):
         vm.stack.push(None)
@@ -43,7 +69,7 @@ class Singletons:
         vm.stack.push(True)
 
 
-class Instructions(Arithmetics, Singletons):
+class Instructions(Arithmetics, Singletons, Comparisons):
     def dispatch(self, instr_name, vm):
         return getattr(self, instr_name)(vm)
 

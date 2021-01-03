@@ -22,10 +22,16 @@ PRECEDENCES = {
     TokenType.SLASH: [None, "binary", "FACTOR"],
     TokenType.STAR: [None, "binary", "FACTOR"],
     TokenType.BANG: ["unary", None, None],
+    TokenType.BANG_EQUAL: [None, "binary", "EQUALITY"],
+    TokenType.EQUAL_EQUAL: [None, "binary", "EQUALITY"],
+    TokenType.GREATER: [None, "binary", "COMPARISON"],
+    TokenType.GREATER_EQUAL: [None, "binary", "COMPARISON"],
+    TokenType.LESS: [None, "binary", "COMPARISON"],
+    TokenType.LESS_EQUAL: [None, "binary", "COMPARISON"],
     TokenType.NUMBER: ["number", None, None],
+    TokenType.FALSE: ["literal", None, None],
     TokenType.NIL: ["literal", None, None],
     TokenType.TRUE: ["literal", None, None],
-    TokenType.FALSE: ["literal", None, None],
 }
 
 

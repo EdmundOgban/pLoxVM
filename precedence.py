@@ -7,6 +7,7 @@ class Precedence(IntEnum):
     OR = auto()
     AND = auto()
     EQUALITY = auto()
+    COMPARISON = auto()
     TERM = auto()
     FACTOR = auto()
     UNARY = auto()

@@ -11,12 +11,12 @@ def binary(inst):
    return inst._binary()
 
 
-def unary(inst):
-   return inst._unary()
-
-
 def grouping(inst):
    return inst._grouping()
+
+
+def unary(inst):
+   return inst._unary()
 
 
 def number(inst):
@@ -42,13 +42,13 @@ RULES = {
     TokenType.COLON: ParseRule(None, None, Precedence.NONE),
     TokenType.QUERY: ParseRule(None, None, Precedence.NONE),
     TokenType.BANG: ParseRule(unary, None, None),
-    TokenType.BANG_EQUAL: ParseRule(None, None, Precedence.NONE),
+    TokenType.BANG_EQUAL: ParseRule(None, binary, Precedence.EQUALITY),
     TokenType.EQUAL: ParseRule(None, None, Precedence.NONE),
-    TokenType.EQUAL_EQUAL: ParseRule(None, None, Precedence.NONE),
-    TokenType.GREATER: ParseRule(None, None, Precedence.NONE),
-    TokenType.GREATER_EQUAL: ParseRule(None, None, Precedence.NONE),
-    TokenType.LESS: ParseRule(None, None, Precedence.NONE),
-    TokenType.LESS_EQUAL: ParseRule(None, None, Precedence.NONE),
+    TokenType.EQUAL_EQUAL: ParseRule(None, binary, Precedence.EQUALITY),
+    TokenType.GREATER: ParseRule(None, binary, Precedence.COMPARISON),
+    TokenType.GREATER_EQUAL: ParseRule(None, binary, Precedence.COMPARISON),
+    TokenType.LESS: ParseRule(None, binary, Precedence.COMPARISON),
+    TokenType.LESS_EQUAL: ParseRule(None, binary, Precedence.COMPARISON),
     TokenType.PLUS_PLUS: ParseRule(None, None, Precedence.NONE),
     TokenType.MINUS_MINUS: ParseRule(None, None, Precedence.NONE),
     TokenType.IDENTIFIER: ParseRule(None, None, Precedence.NONE),
