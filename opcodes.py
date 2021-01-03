@@ -3,6 +3,7 @@ OPCODES_SIMPLE = [
     "OP_SUBTRACT",
     "OP_MULTIPLY",
     "OP_DIVIDE",
+    "OP_NOT",
     "OP_NEGATE",
     "OP_NIL",
     "OP_TRUE",

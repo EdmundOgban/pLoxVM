@@ -7,8 +7,8 @@ from .compiler import Precedence
 ParseRule = namedtuple("ParseRule", ["prefix", "infix", "precedence"])
 
 
-def number(inst):
-   return inst._number()
+def binary(inst):
+   return inst._binary()
 
 
 def unary(inst):
@@ -19,8 +19,8 @@ def grouping(inst):
    return inst._grouping()
 
 
-def binary(inst):
-   return inst._binary()
+def number(inst):
+   return inst._number()
 
 
 def literal(inst):
@@ -41,7 +41,7 @@ RULES = {
     TokenType.STAR: ParseRule(None, binary, Precedence.FACTOR),
     TokenType.COLON: ParseRule(None, None, Precedence.NONE),
     TokenType.QUERY: ParseRule(None, None, Precedence.NONE),
-    TokenType.BANG: ParseRule(None, None, Precedence.NONE),
+    TokenType.BANG: ParseRule(unary, None, None),
     TokenType.BANG_EQUAL: ParseRule(None, None, Precedence.NONE),
     TokenType.EQUAL: ParseRule(None, None, Precedence.NONE),
     TokenType.EQUAL_EQUAL: ParseRule(None, None, Precedence.NONE),

@@ -14,6 +14,10 @@ def binary_op(vm, opfunc):
     vm.stack.push(opfunc(a, b))
 
 
+def _is_falsey(value):
+    return value is None or not bool(value)
+
+
 class Arithmetics:
     def OP_ADD(self, vm):
         return binary_op(vm, add)
@@ -58,3 +62,7 @@ class Instructions(Arithmetics, Singletons):
             return VMResult.RUNTIME_ERROR
 
         vm.stack.stack[-1] *= -1
+
+    def OP_NOT(self, vm):
+        value = vm.stack.stack[-1]
+        vm.stack.stack[-1] = _is_falsey(value)

@@ -21,6 +21,7 @@ PRECEDENCES = {
     TokenType.PLUS: [None, "binary", "TERM"],
     TokenType.SLASH: [None, "binary", "FACTOR"],
     TokenType.STAR: [None, "binary", "FACTOR"],
+    TokenType.BANG: ["unary", None, None],
     TokenType.NUMBER: ["number", None, None],
     TokenType.NIL: ["literal", None, None],
     TokenType.TRUE: ["literal", None, None],

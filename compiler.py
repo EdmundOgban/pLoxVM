@@ -94,6 +94,8 @@ class Compiler(Emitter):
         self._parse_precedence(Precedence.UNARY)
         if operator_type is TokenType.MINUS:
             self.emit_byte(OP_NEGATE)
+        elif operator_type is TokenType.BANG:
+            self.emit_byte(OP_NOT)
 
     def _parse_precedence(self, precedence):
         self._advance()
