@@ -2,7 +2,7 @@ from .error_machinery import ErrorMachinery
 from .opcodes import *
 from .scanner import TokenType
 from .precedence import Precedence
-from . import scanner, compiler, pratt, debug
+from . import compiler, pratt, scanner, types, debug
 
 
 errmac = ErrorMachinery()
@@ -26,7 +26,8 @@ class Emitter:
         self.previous = None
         self.chunk = None
 
-    def emit_constant(self, pos):
+    def emit_constant(self, value):
+        pos = self._make_constant(value)
         self.emit_bytes(OP_CONSTANT, pos)
 
     def emit_return(self):
@@ -39,6 +40,13 @@ class Emitter:
         for byte in args:
             self.emit_byte(byte)
 
+    def _make_constant(self, value):
+        constant = self.chunk.add_constant(value)
+        if constant > 255:
+            self._error("Too many constants in one chunk.")
+            return 0
+
+        return constant
 
 class Compiler(Emitter):
     def __init__(self):
@@ -77,8 +85,11 @@ class Compiler(Emitter):
 
     def _number(self):
         value = float(self.previous.lexeme)
-        pos = self._make_constant(value)
-        self.emit_constant(pos)
+        self.emit_constant(value)
+
+    def _string(self):
+        s = types.LoxString(self.previous.lexeme[1:-1])
+        self.emit_constant(s)
 
     def _binary(self):
         operator_type = self.previous.type
@@ -123,14 +134,6 @@ class Compiler(Emitter):
         self.emit_return()
         if debug.PRINT_CODE and not errmac.errored:
             debug.disassemble(self.chunk, "code")
-
-    def _make_constant(self, value):
-        constant = self.chunk.add_constant(value)
-        if constant > 255:
-            self._error("Too many constants in one chunk.")
-            return 0
-
-        return constant
 
     def _consume(self, token_type, message):
         if self.current.type is token_type:

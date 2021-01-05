@@ -1,5 +1,7 @@
 from array import array
 
+from . import types
+
 
 def print_value(value, end=""):
     out = None
@@ -10,6 +12,8 @@ def print_value(value, end=""):
         out = str(value).lower()
     elif isinstance(value, float):
         out = f"{value:g}"
+    elif isinstance(value, types.LoxString):
+        out = str(value)
 
     if out:
         print(out, end=end)
@@ -19,8 +23,8 @@ class ValueArray:
     # def __init__(self):
     #     self.init()
 
-    def init(self, type="d"):
-        self.values = array(type)
+    def init(self):
+        self.values = []
         self._count = 0
 
     def write(self, byte):

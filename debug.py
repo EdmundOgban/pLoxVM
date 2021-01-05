@@ -1,7 +1,7 @@
 from .opcodes import *
 from . import value
 
-TRACE_EXECUTION = True
+TRACE_EXECUTION = False
 PRINT_CODE = False
 
 

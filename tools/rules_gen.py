@@ -28,6 +28,7 @@ PRECEDENCES = {
     TokenType.GREATER_EQUAL: [None, "binary", "COMPARISON"],
     TokenType.LESS: [None, "binary", "COMPARISON"],
     TokenType.LESS_EQUAL: [None, "binary", "COMPARISON"],
+    TokenType.STRING: ["string", None, None],
     TokenType.NUMBER: ["number", None, None],
     TokenType.FALSE: ["literal", None, None],
     TokenType.NIL: ["literal", None, None],
@@ -62,13 +63,13 @@ def write_precedences(f, tokens=TokenType):
             if infix:
                 functions.add(infix)
 
-            s = f"ParseRule({prefix}, {infix}, {'Precedence.' if prec else ''}{prec})"
+            s = f"ParseRule({prefix}, {infix}, Precedence.{str(prec).upper()})"
         else:
             s = "ParseRule(None, None, Precedence.NONE)"
 
         lines.append(f"    {value.__class__.__name__}.{name}: " + s)
 
-    for function in functions:
+    for function in sorted(functions):
         f.write(dedent(f""" \
             def {function}(inst):
                 return inst._{function}()

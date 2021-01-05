@@ -1,12 +1,17 @@
 from operator import add, sub, mul, truediv, gt, lt
 
 from .enums import VMResult
-from . import value
+from . import types, value
 
 
-def binary_op(vm, opfunc):
-    if not isinstance(vm.stack.peek(), float) or not isinstance(vm.stack.peek(1), float):
-        vm.runtime_error("Operands must be numbers.")
+def _binary_op(vm, opfunc):
+    b = vm.stack.peek()
+    a = vm.stack.peek(1)
+    both_float = isinstance(a, float) and isinstance(b, float)
+    both_string = isinstance(a, types.LoxString) and isinstance(b, types.LoxString)
+
+    if not any([both_float, both_string]):
+        vm.runtime_error("Operands must be two numbers or two strings.")
         return VMResult.RUNTIME_ERROR
 
     b = vm.stack.pop()
@@ -33,16 +38,16 @@ def _equality(a, b):
 
 class Arithmetics:
     def OP_ADD(self, vm):
-        return binary_op(vm, add)
+        return _binary_op(vm, add)
 
     def OP_SUBTRACT(self, vm):
-        return binary_op(vm, sub)
+        return _binary_op(vm, sub)
 
     def OP_MULTIPLY(self, vm):
-        return binary_op(vm, mul)
+        return _binary_op(vm, mul)
         
     def OP_DIVIDE(self, vm):
-        return binary_op(vm, truediv)
+        return _binary_op(vm, truediv)
 
 
 class Comparisons:
@@ -52,10 +57,10 @@ class Comparisons:
         vm.stack.push(_equality(a, b))
 
     def OP_GREATER(self, vm):
-        return binary_op(vm, gt)
+        return _binary_op(vm, gt)
 
     def OP_LESS(self, vm):
-        return binary_op(vm, lt)
+        return _binary_op(vm, lt)
 
 
 class Singletons:
