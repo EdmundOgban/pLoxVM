@@ -1,9 +1,8 @@
-from operator import add, sub, mul, truediv
-
 from .opcodes import *
 from .enums import VMResult
 from .error_machinery import ErrorMachinery
-from . import value, dispatcher, compiler, chunk, debug
+from . import compiler, chunk, dispatcher, hashmap, value
+from . import debug
 
 
 errmac = ErrorMachinery()

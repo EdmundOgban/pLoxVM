@@ -2,7 +2,8 @@ from .error_machinery import ErrorMachinery
 from .opcodes import *
 from .scanner import TokenType
 from .precedence import Precedence
-from . import compiler, pratt, scanner, types, debug
+from . import compiler, hashmap, pratt, scanner, types
+from . import debug
 
 
 errmac = ErrorMachinery()
@@ -52,6 +53,7 @@ class Compiler(Emitter):
     def __init__(self):
         super().__init__()
         self.scanner = scanner.Scanner()
+        self.strings = hashmap.HashMap()
         self.previous = None
         self.current = None
 
@@ -88,8 +90,13 @@ class Compiler(Emitter):
         self.emit_constant(value)
 
     def _string(self):
-        s = types.LoxString(self.previous.lexeme[1:-1])
-        self.emit_constant(s)
+        string = self.previous.lexeme[1:-1]
+        inst = self.strings.get(string)
+        if inst is None:
+            inst = types.LoxString(string)
+            self.strings.insert(inst.hash, inst, byhash=True)
+
+        self.emit_constant(inst)
 
     def _binary(self):
         operator_type = self.previous.type
