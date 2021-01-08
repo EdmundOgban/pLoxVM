@@ -79,13 +79,15 @@ class Instructions(Arithmetics, Singletons, Comparisons):
         return getattr(self, instr_name)(vm)
 
     def OP_RETURN(self, vm):
-        value.print_value(vm.stack.pop(), end="\n")
         return True
 
     def OP_CONSTANT(self, vm):
         addr = vm.next_instruction()
         constant = vm.chunk.constants.values[addr]
         vm.stack.push(constant)
+
+    def OP_PRINT(self, vm):
+        value.print_value(vm.stack.pop(), end="\n")
 
     def OP_NEGATE(self, vm):
         if not isinstance(vm.stack.peek(), float):
@@ -95,5 +97,37 @@ class Instructions(Arithmetics, Singletons, Comparisons):
         vm.stack.stack[-1] *= -1
 
     def OP_NOT(self, vm):
-        value = vm.stack.stack[-1]
-        vm.stack.stack[-1] = _is_falsey(value)
+        val = vm.stack.stack[-1]
+        vm.stack.stack[-1] = _is_falsey(val)
+
+    def OP_POP(self, vm):
+        vm.stack.pop()
+
+    def OP_GET_GLOBAL(self, vm):
+        addr = vm.next_instruction()
+        name = vm.chunk.constants.values[addr]
+        value = vm.compiler.globals.get(name.hash, byhash=True)
+
+        if value is None:
+            vm.runtime_error(f"Undefined variable '{name}'")
+            return VMResult.RUNTIME_ERROR
+
+        vm.stack.push(value)
+
+    def OP_DEFINE_GLOBAL(self, vm):
+        addr = vm.next_instruction()
+        name = vm.chunk.constants.values[addr]
+        #vm.globals.set(name, vm.stack.peek())
+        #vm.stack.pop()
+        # Is this code the same?
+        vm.compiler.globals.insert(name.buffer, vm.stack.pop())
+
+    def OP_SET_GLOBAL(self, vm):
+        addr = vm.next_instruction()
+        name = vm.chunk.constants.values[addr]
+
+        if name.buffer not in vm.compiler.globals:
+            vm.runtime_error(f"Undefined variable '{name}'")
+            return VMResult.RUNTIME_ERROR
+
+        vm.compiler.globals.insert(name.hash, vm.stack.peek(), byhash=True)

@@ -7,28 +7,32 @@ from .compiler import Precedence
 ParseRule = namedtuple("ParseRule", ["prefix", "infix", "precedence"])
 
 
-def binary(inst):
-   return inst._binary()
+def binary(inst, can_assign):
+   return inst._binary(can_assign)
 
 
-def grouping(inst):
-   return inst._grouping()
+def grouping(inst, can_assign):
+   return inst._grouping(can_assign)
 
 
-def literal(inst):
-   return inst._literal()
+def literal(inst, can_assign):
+   return inst._literal(can_assign)
 
 
-def number(inst):
-   return inst._number()
+def number(inst, can_assign):
+   return inst._number(can_assign)
 
 
-def string(inst):
-   return inst._string()
+def string(inst, can_assign):
+   return inst._string(can_assign)
 
 
-def unary(inst):
-   return inst._unary()
+def unary(inst, can_assign):
+   return inst._unary(can_assign)
+
+
+def variable(inst, can_assign):
+   return inst._variable(can_assign)
 
 
 RULES = {
@@ -55,7 +59,7 @@ RULES = {
     TokenType.LESS_EQUAL: ParseRule(None, binary, Precedence.COMPARISON),
     TokenType.PLUS_PLUS: ParseRule(None, None, Precedence.NONE),
     TokenType.MINUS_MINUS: ParseRule(None, None, Precedence.NONE),
-    TokenType.IDENTIFIER: ParseRule(None, None, Precedence.NONE),
+    TokenType.IDENTIFIER: ParseRule(variable, None, Precedence.NONE),
     TokenType.STRING: ParseRule(string, None, Precedence.NONE),
     TokenType.NUMBER: ParseRule(number, None, Precedence.NONE),
     TokenType.AND: ParseRule(None, None, Precedence.NONE),

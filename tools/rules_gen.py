@@ -28,6 +28,7 @@ PRECEDENCES = {
     TokenType.GREATER_EQUAL: [None, "binary", "COMPARISON"],
     TokenType.LESS: [None, "binary", "COMPARISON"],
     TokenType.LESS_EQUAL: [None, "binary", "COMPARISON"],
+    TokenType.IDENTIFIER: ["variable", None, None],
     TokenType.STRING: ["string", None, None],
     TokenType.NUMBER: ["number", None, None],
     TokenType.FALSE: ["literal", None, None],
@@ -71,8 +72,8 @@ def write_precedences(f, tokens=TokenType):
 
     for function in sorted(functions):
         f.write(dedent(f""" \
-            def {function}(inst):
-                return inst._{function}()
+            def {function}(inst, can_assign):
+                return inst._{function}(can_assign)
             \n\n"""))
 
     f.write("RULES = {\n")
