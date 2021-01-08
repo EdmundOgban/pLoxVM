@@ -17,7 +17,6 @@ class Plox:
 
     def run_oneshot(self, source):
         out = self.run(source)
-        self.vm.free()
         if out is VMResult.COMPILE_ERROR:
             sys.exit(65)
         elif out is VMResult.RUNTIME_ERROR:

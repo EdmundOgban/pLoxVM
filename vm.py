@@ -90,9 +90,6 @@ class VM:
         self.ip += 1
         return instr
 
-    def free(self):
-        self.init()
-
     def runtime_error(self, message):
         line = self.chunk.lines[self.ip - 1]
         message = f"{message}\n[line {line}] in script"

@@ -31,9 +31,6 @@ class ValueArray:
         self.values.append(byte)
         self._count += 1
 
-    def free(self):
-        self.init()
-
     @property
     def count(self):
         return self._count
