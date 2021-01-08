@@ -10,9 +10,11 @@ def fnv1a(b):
 class HashMap:
 
     """ Hash table using open addressing insertion technique """
-    def __init__(self, initializer=None, *, chunksize=65535, loadfactor=0.75):
+    def __init__(self, initializer=None, *, chunksize=16, loadfactor=0.75, growfactor=2, maxsize=2**19):
         self.chunksize = chunksize
         self.loadfactor = loadfactor
+        self.growfactor = growfactor
+        self.maxsize = maxsize
         self.capacity = 0
         self.indices = None
         # These are parallel arrays
@@ -146,8 +148,8 @@ class HashMap:
                     if idx == self.capacity:
                         idx = 0
 
-        if self.chunksize < 2**20:
-            self.chunksize *= 2
+        if self.chunksize < self.maxsize:
+            self.chunksize = round(self.chunksize * self.growfactor)
 
     def __contains__(self, key):
         return self.get(key) is not None
