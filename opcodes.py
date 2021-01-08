@@ -24,8 +24,6 @@ OPCODES_CONSTANT = [
 ]
 
 OPCODES = [*OPCODES_SIMPLE, *OPCODES_CONSTANT]
-OPNAMES = {}
 
-for machcode, opcode in enumerate(OPCODES, 1):
+for machcode, opcode in enumerate(OPCODES):
     globals()[opcode] = machcode
-    OPNAMES[machcode] = opcode

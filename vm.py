@@ -68,7 +68,7 @@ class VM:
                 self.trace()
 
             instr = self.next_instruction()
-            instr_name = OPNAMES.get(instr)
+            instr_name = OPCODES[instr]
             if instr_name is not None:
                 ret = self.instructions.dispatch(instr_name, self)
                 if ret is not None:

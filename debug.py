@@ -25,7 +25,7 @@ def disasm_instruction(chunk, offset):
     else:
         print(f"{offset:04} ", end="")
 
-    opname = OPNAMES.get(inst)
+    opname = OPCODES[inst]
     if opname in OPCODES_SIMPLE:
         return simple_instruction(opname, offset)
     elif opname in OPCODES_CONSTANT:

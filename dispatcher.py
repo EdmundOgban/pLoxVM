@@ -117,7 +117,7 @@ class Instructions(Arithmetics, Singletons, Comparisons):
     def OP_DEFINE_GLOBAL(self, vm):
         addr = vm.next_instruction()
         name = vm.chunk.constants.values[addr]
-        #vm.globals.insert(name, vm.stack.peek())
+        #vm.globals.insert(name.buffer, vm.stack.peek())
         #vm.stack.pop()
         # Is this code the same?
         vm.globals.insert(name.buffer, vm.stack.pop())
@@ -126,8 +126,8 @@ class Instructions(Arithmetics, Singletons, Comparisons):
         addr = vm.next_instruction()
         name = vm.chunk.constants.values[addr]
 
-        if name.buffer not in vm.globals:
+        defined = vm.globals.insert(name.hash, vm.stack.peek(), byhash=True)
+        if not defined:
+            vm.globals.remove(name.hash, byhash=True)
             vm.runtime_error(f"Undefined variable '{name}'")
             return VMResult.RUNTIME_ERROR
-
-        vm.globals.insert(name.hash, vm.stack.peek(), byhash=True)

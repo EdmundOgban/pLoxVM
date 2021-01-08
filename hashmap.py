@@ -34,6 +34,7 @@ class HashMap:
 
         idx = hsh % self.capacity
         inserted = False
+        substituted = False
         while not inserted:
             cidx = self.indices[idx]
             # We can insert either if it's not present or if it's a tombstone
@@ -46,6 +47,7 @@ class HashMap:
             else:
                 if self.hashes[cidx] == hsh:
                     inserted = True
+                    substituted = True
                     self.values[cidx] = value
                 else:
                     idx += 1
@@ -54,6 +56,8 @@ class HashMap:
 
         if self.overloaded:
             self._allocate_next()
+
+        return substituted
 
     def insert_all(self, it):
         if isinstance(it, dict):
