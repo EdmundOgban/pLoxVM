@@ -43,6 +43,7 @@ class VM:
     def __init__(self):
         self.stack = Stack()
         self.compiler = compiler.Compiler()
+        self.globals = hashmap.HashMap()
         self.instructions = dispatcher.Instructions()
         self.init()
 

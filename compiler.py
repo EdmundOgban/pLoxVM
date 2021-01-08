@@ -73,7 +73,6 @@ class Compiler(Emitter):
         super().__init__()
         self.scanner = scanner.Scanner()
         self.strings = hashmap.HashMap()
-        self.globals = hashmap.HashMap()
         self.previous = None
         self.current = None
 

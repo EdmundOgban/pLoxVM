@@ -106,7 +106,7 @@ class Instructions(Arithmetics, Singletons, Comparisons):
     def OP_GET_GLOBAL(self, vm):
         addr = vm.next_instruction()
         name = vm.chunk.constants.values[addr]
-        value = vm.compiler.globals.get(name.hash, byhash=True)
+        value = vm.globals.get(name.hash, byhash=True)
 
         if value is None:
             vm.runtime_error(f"Undefined variable '{name}'")
@@ -117,17 +117,17 @@ class Instructions(Arithmetics, Singletons, Comparisons):
     def OP_DEFINE_GLOBAL(self, vm):
         addr = vm.next_instruction()
         name = vm.chunk.constants.values[addr]
-        #vm.globals.set(name, vm.stack.peek())
+        #vm.globals.insert(name, vm.stack.peek())
         #vm.stack.pop()
         # Is this code the same?
-        vm.compiler.globals.insert(name.buffer, vm.stack.pop())
+        vm.globals.insert(name.buffer, vm.stack.pop())
 
     def OP_SET_GLOBAL(self, vm):
         addr = vm.next_instruction()
         name = vm.chunk.constants.values[addr]
 
-        if name.buffer not in vm.compiler.globals:
+        if name.buffer not in vm.globals:
             vm.runtime_error(f"Undefined variable '{name}'")
             return VMResult.RUNTIME_ERROR
 
-        vm.compiler.globals.insert(name.hash, vm.stack.peek(), byhash=True)
+        vm.globals.insert(name.hash, vm.stack.peek(), byhash=True)
