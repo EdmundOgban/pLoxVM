@@ -8,9 +8,6 @@ OPCODES_SIMPLE = [
     "OP_NEGATE",
     "OP_FALSE",
     "OP_POP",
-    "OP_GET_GLOBAL",
-    "OP_DEFINE_GLOBAL",
-    "OP_SET_GLOBAL",
     "OP_NIL",
     "OP_TRUE",
     "OP_EQUAL",
@@ -23,7 +20,15 @@ OPCODES_CONSTANT = [
     "OP_CONSTANT",
 ]
 
-OPCODES = [*OPCODES_SIMPLE, *OPCODES_CONSTANT]
+OPCODES_BYTEINSTR = [
+    "OP_GET_LOCAL",
+    "OP_SET_LOCAL",
+    "OP_GET_GLOBAL",
+    "OP_DEFINE_GLOBAL",
+    "OP_SET_GLOBAL",
+]
+
+OPCODES = [*OPCODES_SIMPLE, *OPCODES_CONSTANT, *OPCODES_BYTEINSTR]
 
 for machcode, opcode in enumerate(OPCODES):
     globals()[opcode] = machcode

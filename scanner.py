@@ -121,6 +121,7 @@ class Token:
         self.type = type
         self.lexeme = lexeme
         self.line = line
+        self.length = len(lexeme)
 
     def __str__(self):
         return f"{self.type} {self.lexeme}"

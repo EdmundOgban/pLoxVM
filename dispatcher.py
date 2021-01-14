@@ -87,7 +87,8 @@ class Instructions(Arithmetics, Singletons, Comparisons):
         vm.stack.push(constant)
 
     def OP_PRINT(self, vm):
-        value.print_value(vm.stack.pop(), end="\n")
+        val = vm.stack.pop()
+        value.print_value(val, end="\n")
 
     def OP_NEGATE(self, vm):
         if not isinstance(vm.stack.peek(), float):
@@ -102,6 +103,15 @@ class Instructions(Arithmetics, Singletons, Comparisons):
 
     def OP_POP(self, vm):
         vm.stack.pop()
+
+    def OP_GET_LOCAL(self, vm):
+        slot = vm.next_instruction()
+        val = vm.stack.stack[slot]
+        vm.stack.push(val)
+
+    def OP_SET_LOCAL(self, vm):
+        slot = vm.next_instruction()
+        vm.stack.stack[slot] = vm.stack.peek()
 
     def OP_GET_GLOBAL(self, vm):
         addr = vm.next_instruction()

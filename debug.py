@@ -1,7 +1,7 @@
 from .opcodes import *
 from . import value
 
-TRACE_EXECUTION = False
+TRACE_EXECUTION = True
 PRINT_CODE = False
 
 
@@ -18,6 +18,12 @@ def constant_instruction(opname, chunk, offset):
     return offset + 2
 
 
+def byte_instruction(opname, chunk, offset):
+    slot = chunk.code[offset + 1]
+    print(f"{opname:16} {slot:4} ")
+    return offset + 2;
+
+
 def disasm_instruction(chunk, offset):
     inst = chunk.code[offset]
     if offset > 0 and chunk.lines[offset] == chunk.lines[offset - 1]:
@@ -30,6 +36,8 @@ def disasm_instruction(chunk, offset):
         return simple_instruction(opname, offset)
     elif opname in OPCODES_CONSTANT:
         return constant_instruction(opname, chunk, offset)
+    elif opname in OPCODES_BYTEINSTR:
+        return byte_instruction(opname, chunk, offset)
     else:
         print(f"Unknown opcode {inst}")
 

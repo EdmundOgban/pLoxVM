@@ -1,8 +1,10 @@
+from contextlib import contextmanager
+
 from .error_machinery import ErrorMachinery
 from .opcodes import *
 from .scanner import TokenType
 from .precedence import Precedence
-from . import compiler, hashmap, pratt, scanner, types
+from . import compiler, hashmap, pratt, scanner, types, value
 from . import debug
 
 
@@ -73,6 +75,7 @@ class Compiler(Emitter):
         super().__init__()
         self.scanner = scanner.Scanner()
         self.strings = hashmap.HashMap()
+        self.locals = value.Locals()
         self.previous = None
         self.current = None
 
@@ -109,6 +112,12 @@ class Compiler(Emitter):
     def _expression(self):
         self._parse_precedence(Precedence.ASSIGNMENT)
 
+    def _block(self):
+        while not self._check(TokenType.RIGHT_BRACE) and not self._check(TokenType.EOF):
+            self._declaration()
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+
     def _statement_var(self):
         globvar = self._parse_variable("Expect variable name.")
 
@@ -130,6 +139,19 @@ class Compiler(Emitter):
         self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
         self.emit_byte(OP_PRINT)
 
+    @contextmanager
+    def _scope(self):
+        self.locals.scope_depth += 1
+        yield
+        self.locals.scope_depth -= 1
+        # FIXME: Make this more pythonic
+        while self.locals.count > 0 and self.locals.depth[self.locals.count - 1] > self.locals.scope_depth:
+            self.emit_byte(OP_POP)
+            self.locals.count -= 1
+
+        if self.locals.scope_depth == 0:
+            self.locals.depth = []
+
     def _declaration(self):
         if self._match(TokenType.VAR):
             self._statement_var()
@@ -142,6 +164,9 @@ class Compiler(Emitter):
     def _statement(self):
         if self._match(TokenType.PRINT):
             self._statement_print()
+        elif self._match(TokenType.LEFT_BRACE):
+            with self._scope():
+                self._block()
         else:
             self._statement_expression()
 
@@ -159,16 +184,36 @@ class Compiler(Emitter):
         self.emit_constant(inst)
 
     def _variable(self, can_assign):
-        self._named_variable(self.previous.lexeme, can_assign)
+        self._named_variable(self.previous, can_assign)
+
+    def _resolve_local(self, name):
+        # FIXME: Make this more pythonic
+        for i in range(self.locals.count - 1, -1, -1):
+            localname = self.locals.locals[i]
+            if name.length == localname.length and name.lexeme == localname.lexeme:
+                if self.locals.depth[i] == -1:
+                    self._error("Can't read local variable in its own initializer.")
+
+                return i
+
+        return -1
 
     def _named_variable(self, name, can_assign):
-        arg = self._identifier_constant(name)
+        arg = self._resolve_local(name)
+
+        if arg != -1:
+            opcode_set = OP_SET_LOCAL
+            opcode_get = OP_GET_LOCAL
+        else:
+            arg = self._identifier_constant(name)
+            opcode_set = OP_SET_GLOBAL
+            opcode_get = OP_GET_GLOBAL
 
         if can_assign and self._match(TokenType.EQUAL):
             self._expression()
-            self.emit_bytes(OP_SET_GLOBAL, arg)
+            self.emit_bytes(opcode_set, arg)
         else:
-            self.emit_bytes(OP_GET_GLOBAL, arg)
+            self.emit_bytes(opcode_get, arg)
 
     def _binary(self, can_assign):
         operator_type = self.previous.type
@@ -215,13 +260,35 @@ class Compiler(Emitter):
 
     def _parse_variable(self, message):
         self._consume(TokenType.IDENTIFIER, message)
-        return self._identifier_constant(self.previous.lexeme)
+        self._declare_variable()
+        if self.locals.scope_depth > 0:
+            return 0
+
+        return self._identifier_constant(self.previous)
 
     def _define_variable(self, globvar):
+        if self.locals.scope_depth > 0:
+            self.locals.initialize_current()
+            return
+
         self.emit_bytes(OP_DEFINE_GLOBAL, globvar)
 
+    def _declare_variable(self):
+        if self.locals.scope_depth == 0:
+            return
+
+        name = self.previous
+        for localname, depth in self.locals:
+            if depth != -1 and depth < self.locals.scope_depth:
+                break
+
+            if name.length == localname.length and name.lexeme == localname.lexeme:
+                self._error("Already variable with this name in this scope.")
+
+        self.locals.add(name, uninitialized=True)
+
     def _identifier_constant(self, name):
-        return self._make_constant(types.LoxString(name))
+        return self._make_constant(types.LoxString(name.lexeme))
 
     def _end_compiler(self):
         self.emit_return()

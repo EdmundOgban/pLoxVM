@@ -8,40 +8,9 @@ from . import debug
 errmac = ErrorMachinery()
 
 
-class LoxStackOverflow(Exception):
-    pass
-
-
-class Stack:
-    def __init__(self, maxsize=256):
-        self.stack = []
-        self.stack_top = 0
-        self.maxsize = maxsize
-
-    def push(self, val):
-        if self.stack_top == self.maxsize:
-            raise LoxStackOverflow
-
-        self.stack.append(val)
-        self.stack_top += 1
-
-    def pop(self):
-        self.stack_top -= 1
-        return self.stack.pop()
-
-    def peek(self, distance=0):
-        return self.stack[-1 - distance]
-
-    def reset(self):
-        self.stack_top = 0
-
-    def __iter__(self):
-        return iter(self.stack)
-
-
 class VM:
     def __init__(self):
-        self.stack = Stack()
+        self.stack = value.Stack()
         self.compiler = compiler.Compiler()
         self.globals = hashmap.HashMap()
         self.instructions = dispatcher.Instructions()

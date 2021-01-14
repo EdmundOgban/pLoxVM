@@ -18,9 +18,6 @@ class Chunk:
         self.lines.append(line)
         self._count += 1
 
-    def free(self):
-        self.init()
-
     def add_constant(self, value):
         pos = self.constants.count
         self.constants.write(value)
