@@ -8,20 +8,18 @@ def fnv1a(b):
 
 
 class HashMap:
-
     """ Hash table using open addressing insertion technique """
     def __init__(self, initializer=None, *, chunksize=16, loadfactor=0.75, growfactor=2, maxsize=2**19):
         self.chunksize = chunksize
         self.loadfactor = loadfactor
         self.growfactor = growfactor
         self.maxsize = maxsize
-        self.capacity = 0
-        self.indices = None
+        self.capacity = chunksize
+        self.indices = [None] * chunksize
         # These are parallel arrays
         self.hashes = []
         self.keys = []
         self.values = []
-        self._allocate_next(firstcall=True)
         if initializer:
             self.insert_all(initializer)
 
@@ -34,7 +32,7 @@ class HashMap:
         else:
             hsh = key
 
-        idx = hsh % self.capacity
+        idx = hsh & (self.capacity - 1)
         inserted = False
         substituted = False
         while not inserted:
@@ -77,7 +75,7 @@ class HashMap:
         else:
             hsh = key
 
-        idx = hsh % self.capacity
+        idx = hsh & (self.capacity - 1)
         while True:
             cidx = self.indices[idx]
             if cidx is None:
@@ -100,8 +98,9 @@ class HashMap:
         else:
             hsh = key
 
-        idx = hsh % self.capacity
-        while True:
+        idx = hsh & (self.capacity - 1)
+        removed = False
+        while not removed:
             cidx = self.indices[idx]
             if cidx is None:
                 # Not present
@@ -110,11 +109,30 @@ class HashMap:
             if self.hashes[cidx] == hsh:
                 # Make a tombstone
                 self.indices[idx] = False
-                self.hashes.pop(cidx)
-                self.values.pop(cidx)
-                self.keys.pop(cidx)
+                # In case we're removing the only one or the last
+                # element, just pop the values
+                if (cidx == 0 and self.count == 1) or cidx == self.count - 1:
+                    self.hashes.pop()
+                    self.values.pop()
+                    self.keys.pop()
+                    break
 
-                break
+                # Otherwise, fill the gap
+                lasthash = self.hashes[-1]
+                lastidx = lasthash & (self.capacity - 1)
+                # Resolve collisions once again
+                while not removed:
+                    lastcidx = self.indices[lastidx]
+                    if self.hashes[lastcidx] == lasthash:
+                        self.indices[lastidx] = cidx
+                        self.hashes[cidx] = self.hashes.pop()
+                        self.values[cidx] = self.values.pop()
+                        self.keys[cidx] = self.keys.pop()
+                        removed = True
+                    else:
+                        lastcidx += 1
+                        if lastcidx == self.capacity:
+                            lastcidx = 0
             else:
                 idx += 1
                 if idx == self.capacity:
@@ -132,31 +150,32 @@ class HashMap:
     def count(self):
         return len(self.hashes)
 
-    def _allocate_next(self, *, firstcall=False):
-        self.capacity += self.chunksize
-        self.indices = [None] * self.capacity
-
-        if not firstcall:
-            for cidx, h in enumerate(self.hashes):
-                idx = h % self.capacity
-                while True:
-                    if self.indices[idx] is None:
-                        self.indices[idx] = cidx
-                        break
-
-                    idx += 1
-                    if idx == self.capacity:
-                        idx = 0
-
+    def _allocate_next(self):
         if self.chunksize < self.maxsize:
-            self.chunksize = round(self.chunksize * self.growfactor)
+            self.chunksize *= self.growfactor
+            self.capacity = self.chunksize
+        else:
+            self.capacity *= self.growfactor
+
+        mask = self.capacity - 1
+        self.indices = [None] * self.capacity
+        for cidx, h in enumerate(self.hashes):
+            idx = h & mask
+
+            while True:
+                if self.indices[idx] is None:
+                    self.indices[idx] = cidx
+                    break
+
+                idx += 1
+                if idx == self.capacity:
+                    idx = 0
 
     def __contains__(self, key):
         return self.get(key) is not None
 
 
 class HashSet(HashMap):
-
     def insert(self, value, *, byhash=False):
         if isinstance(value, str):
             value = bytes(value, "ascii")
@@ -166,7 +185,7 @@ class HashSet(HashMap):
         else:
             hsh = value
 
-        idx = hsh % self.capacity
+        idx = hsh & (self.capacity - 1)
         inserted = False
         while not inserted:
             cidx = self.indices[idx]
@@ -188,13 +207,18 @@ class HashSet(HashMap):
         if self.overloaded:
             self._allocate_next()
 
-    def remove(self, value):
-        if isinstance(value, str):
-            value = bytes(value, "ascii")
+    def remove(self, value, *, byhash=False):
+        if isinstance(key, str):
+            key = bytes(key, "ascii")
 
-        hsh = fnv1a(value)
-        idx = hsh % self.capacity
-        while True:
+        if not byhash:
+            hsh = fnv1a(key)
+        else:
+            hsh = key
+
+        idx = hsh & (self.capacity - 1)
+        removed = False
+        while not removed:
             cidx = self.indices[idx]
             if cidx is None:
                 # Not present
@@ -203,9 +227,28 @@ class HashSet(HashMap):
             if self.hashes[cidx] == hsh:
                 # Make a tombstone
                 self.indices[idx] = False
-                self.hashes.pop(cidx)
-                self.values.pop(cidx)
-                break
+                # In case we're removing the first or the last
+                # element, just pop the values
+                if (cidx == 0 and self.count == 1) or cidx == self.count - 1:
+                    self.hashes.pop()
+                    self.values.pop()
+                    break
+
+                # Otherwise, fill the gap
+                lasthash = self.hashes[-1]
+                lastidx = lasthash & (self.capacity - 1)
+                # Resolve collisions once again
+                while not removed:
+                    lastcidx = self.indices[lastidx]
+                    if self.hashes[lastcidx] == lasthash:
+                        self.indices[lastidx] = cidx
+                        self.hashes[cidx] = self.hashes.pop()
+                        self.values[cidx] = self.values.pop()
+                        removed = True
+                    else:
+                        lastcidx += 1
+                        if lastcidx == self.capacity:
+                            lastcidx = 0
             else:
                 idx += 1
                 if idx == self.capacity:
