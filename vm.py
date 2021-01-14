@@ -53,11 +53,18 @@ class VM:
 
         return self.run()
 
-    def next_instruction(self, jump_at=None):
+    def next_instruction(self):
         instr = self.chunk.code[self.ip]
-        #self.ip = jump_at if jump_at is not None else self.ip + 1
         self.ip += 1
         return instr
+
+    def next_short(self):
+        val = self.chunk.code[self.ip]
+        self.ip += 1
+        val <<= 8
+        val |= self.chunk.code[self.ip]
+        self.ip += 1
+        return val
 
     def runtime_error(self, message):
         line = self.chunk.lines[self.ip - 1]

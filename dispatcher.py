@@ -78,6 +78,19 @@ class Instructions(Arithmetics, Singletons, Comparisons):
     def dispatch(self, instr_name, vm):
         return getattr(self, instr_name)(vm)
 
+    def OP_JUMP_IF_FALSE(self, vm):
+        offset = vm.next_short()
+        if _is_falsey(vm.stack.peek()):
+            vm.ip += offset
+
+    def OP_JUMP(self, vm):
+        offset = vm.next_short()
+        vm.ip += offset
+
+    def OP_LOOP(self, vm):
+        offset = vm.next_short()
+        vm.ip -= offset
+
     def OP_RETURN(self, vm):
         return True
 

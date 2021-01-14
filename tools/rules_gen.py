@@ -31,6 +31,8 @@ PRECEDENCES = {
     TokenType.IDENTIFIER: ["variable", None, None],
     TokenType.STRING: ["string", None, None],
     TokenType.NUMBER: ["number", None, None],
+    TokenType.AND: [None, "and_", "AND"],
+    TokenType.OR: [None, "or_", "OR"],
     TokenType.FALSE: ["literal", None, None],
     TokenType.NIL: ["literal", None, None],
     TokenType.TRUE: ["literal", None, None],

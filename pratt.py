@@ -7,6 +7,10 @@ from .compiler import Precedence
 ParseRule = namedtuple("ParseRule", ["prefix", "infix", "precedence"])
 
 
+def and_(inst, can_assign):
+   return inst._and_(can_assign)
+
+
 def binary(inst, can_assign):
    return inst._binary(can_assign)
 
@@ -21,6 +25,10 @@ def literal(inst, can_assign):
 
 def number(inst, can_assign):
    return inst._number(can_assign)
+
+
+def or_(inst, can_assign):
+   return inst._or_(can_assign)
 
 
 def string(inst, can_assign):
@@ -62,7 +70,7 @@ RULES = {
     TokenType.IDENTIFIER: ParseRule(variable, None, Precedence.NONE),
     TokenType.STRING: ParseRule(string, None, Precedence.NONE),
     TokenType.NUMBER: ParseRule(number, None, Precedence.NONE),
-    TokenType.AND: ParseRule(None, None, Precedence.NONE),
+    TokenType.AND: ParseRule(None, and_, Precedence.AND),
     TokenType.CLASS: ParseRule(None, None, Precedence.NONE),
     TokenType.ELSE: ParseRule(None, None, Precedence.NONE),
     TokenType.FALSE: ParseRule(literal, None, Precedence.NONE),
@@ -70,7 +78,7 @@ RULES = {
     TokenType.FOR: ParseRule(None, None, Precedence.NONE),
     TokenType.IF: ParseRule(None, None, Precedence.NONE),
     TokenType.NIL: ParseRule(literal, None, Precedence.NONE),
-    TokenType.OR: ParseRule(None, None, Precedence.NONE),
+    TokenType.OR: ParseRule(None, or_, Precedence.OR),
     TokenType.PRINT: ParseRule(None, None, Precedence.NONE),
     TokenType.RETURN: ParseRule(None, None, Precedence.NONE),
     TokenType.SUPER: ParseRule(None, None, Precedence.NONE),

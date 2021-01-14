@@ -62,6 +62,29 @@ class Emitter:
         for byte in args:
             self.emit_byte(byte)
 
+    def emit_loop(self, loop_start):
+        self.emit_byte(OP_LOOP)
+        offset = self.chunk.count - loop_start + 2
+        if offset > 65535:
+            self._error("Loop body too large.")
+
+        self.emit_byte((offset >> 8) & 0xFF)
+        self.emit_byte(offset & 0xFF)
+
+    def emit_jump(self, instruction):
+        self.emit_byte(instruction)
+        self.emit_bytes(0xFF, 0xFF)
+        return self.chunk.count - 2
+
+    def patch_jump(self, offset):
+        jump = self.chunk.count - offset - 2
+
+        if jump > 65535:
+            self._error("Too much code to jump over.")
+
+        self.chunk.code[offset] = (jump >> 8) & 0xFF
+        self.chunk.code[offset + 1] = jump & 0xFF
+
     def _make_constant(self, value):
         constant = self.chunk.add_constant(value)
         if constant > 255:
@@ -134,6 +157,67 @@ class Compiler(Emitter):
         self._consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         self.emit_byte(OP_POP)
 
+    def _statement_if(self):
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+        self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.")
+        then_jump = self.emit_jump(OP_JUMP_IF_FALSE)
+        self.emit_byte(OP_POP)
+        self._statement()
+        else_jump = self.emit_jump(OP_JUMP)
+        self.patch_jump(then_jump)
+        self.emit_byte(OP_POP)
+        if self._match(TokenType.ELSE):
+            self._statement()
+
+        self.patch_jump(else_jump)
+
+    def _statement_while(self):
+        loop_start = self.chunk.count
+        self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
+        self._expression()
+        self._consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.")
+        exit_jump = self.emit_jump(OP_JUMP_IF_FALSE)
+        self.emit_byte(OP_POP)
+        self._statement()
+        self.emit_loop(loop_start)
+        self.patch_jump(exit_jump)
+        self.emit_byte(OP_POP)
+
+    def _statement_for(self):
+        with self._scope():
+            self._consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
+            if self._match(TokenType.SEMICOLON):
+                pass
+            elif self._match(TokenType.VAR):
+                self._statement_var()
+            else:
+                self._statement_expression()
+
+            loop_start = self.chunk.count
+            exit_jump = -1
+            if not self._match(TokenType.SEMICOLON):
+                self._expression()
+                self._consume(TokenType.SEMICOLON, "Expect ';'.")
+                exit_jump = self.emit_jump(OP_JUMP_IF_FALSE)
+                self.emit_byte(OP_POP)
+
+            if not self._match(TokenType.RIGHT_PAREN):
+                body_jump = self.emit_jump(OP_JUMP)
+                increment_start = self.chunk.count
+                self._expression()
+                self.emit_byte(OP_POP)
+                self._consume(TokenType.RIGHT_PAREN, "Expect ')' after clauses.")
+                self.emit_loop(loop_start)
+                loop_start = increment_start
+                self.patch_jump(body_jump)
+
+            self._statement()
+            self.emit_loop(loop_start)
+            if exit_jump != -1:
+                self.patch_jump(exit_jump)
+                self.emit_byte(OP_POP)
+
     def _statement_print(self):
         self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
@@ -147,6 +231,7 @@ class Compiler(Emitter):
         # FIXME: Make this more pythonic
         while self.locals.count > 0 and self.locals.depth[self.locals.count - 1] > self.locals.scope_depth:
             self.emit_byte(OP_POP)
+            self.locals.locals.pop()
             self.locals.count -= 1
 
         if self.locals.scope_depth == 0:
@@ -164,6 +249,12 @@ class Compiler(Emitter):
     def _statement(self):
         if self._match(TokenType.PRINT):
             self._statement_print()
+        elif self._match(TokenType.IF):
+            self._statement_if()
+        elif self._match(TokenType.WHILE):
+            self._statement_while()
+        elif self._match(TokenType.FOR):
+            self._statement_for()
         elif self._match(TokenType.LEFT_BRACE):
             with self._scope():
                 self._block()
@@ -214,6 +305,20 @@ class Compiler(Emitter):
             self.emit_bytes(opcode_set, arg)
         else:
             self.emit_bytes(opcode_get, arg)
+
+    def _and_(self, can_assign):
+        end_jump = self.emit_jump(OP_JUMP_IF_FALSE)
+        self.emit_byte(OP_POP)
+        self._parse_precedence(Precedence.AND)
+        self.patch_jump(end_jump)
+
+    def _or_(self, can_assign):
+        else_jump = self.emit_jump(OP_JUMP_IF_FALSE)
+        end_jump = self.emit_jump(OP_JUMP)
+        self.patch_jump(else_jump)
+        self.emit_byte(OP_POP)
+        self._parse_precedence(Precedence.OR)
+        self.patch_jump(end_jump)
 
     def _binary(self, can_assign):
         operator_type = self.previous.type
